@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  engine:
+    build: ./engine
+    ports:
+      - "3100:3100"
+    environment:
+      - ARC_RPC_URL=${ARC_RPC_URL}
+      - POLICY_ADDRESS=${POLICY_ADDRESS}
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - PORT=3100
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  dashboard:
+    build: ./dashboard
+    ports:
+      - "3101:3101"
+    environment:
+      - ENGINE_URL=http://engine:3100
+    restart: unless-stopped
+    depends_on:
+      engine:
+        condition: service_healthy

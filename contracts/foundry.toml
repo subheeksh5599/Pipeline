@@ -1,0 +1,10 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+[rpc_endpoints]
+arc_testnet = "${ARC_RPC_URL}"
+
+[etherscan]
+arc_testnet = { key = "${ARC_ETHERSCAN_KEY}", url = "https://explorer.arc.network/api" }
