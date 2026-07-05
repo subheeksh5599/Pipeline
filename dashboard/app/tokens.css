@@ -1,0 +1,113 @@
+/* ───────────────────────────────────────────────────────────────────────────
+ * pipeline/dashboard/app/tokens.css
+ *
+ * Dark Stripe tokens — adapted from the open-design Stripe design system
+ * for a dashboard context. Every token is derived from the open-design
+ * `design-systems/stripe/tokens.css` schema with a dark-surface baseline.
+ *
+ * Brand identity:
+ *   Accent: Stripe Purple (#533afd) — single accent, max 2 uses/screen
+ *   Surface: Deep ink (#0a0a0f) — not pure black per craft/color.md
+ *   Type: Söhne / SF Pro Display stack, Source Code Pro mono
+ *   Depth: Semi-transparent white borders per craft/color.md dark theme rules
+ *
+ * Craft contracts honoured:
+ *   craft/color.md  — accent discipline, contrast minimums, dark theme rules
+ *   craft/typography.md — type scale, tracking, line-height
+ *   craft/anti-ai-slop.md — no default indigo, no gradients, no emoji icons,
+ *                          no invented metrics, no filler copy, no rounded
+ *                          card with colored left-border accent
+ * ─────────────────────────────────────────────────────────────────────────── */
+
+:root {
+  /* ─── Surface (dark ink → deep navy → subtle elevation) ─────────────── */
+  --bg:           #0a0a0f;
+  --surface:      #0f1729;
+  --surface-warm: #131c33;
+
+  /* ─── Foreground ramp (white → slate → cool gray) ──────────────────── */
+  --fg:     #ecedee;
+  --fg-2:   #8892b0;
+  --muted:  #5a6480;
+  --meta:   var(--muted);
+
+  /* ─── Border (semi-transparent white per craft/color.md dark rules) ── */
+  --border:      rgba(255, 255, 255, 0.08);
+  --border-soft: rgba(255, 255, 255, 0.04);
+
+  /* ─── Accent (Stripe Purple — exactly one accent, max 2 uses/screen) ─ */
+  --accent:       #533afd;
+  --accent-on:    #ffffff;
+  --accent-hover: #6d58ff;
+  --accent-active:#4331d4;
+
+  /* ─── Semantic (Stripe-derived status colors) ──────────────────────── */
+  --success: #15be53;
+  --warn:    #f5a623;
+  --danger:  #ea2261;
+
+  /* ─── Typography — fonts ───────────────────────────────────────────── */
+  --font-display:
+    "sohne-var", "Söhne", "Sohne",
+    "SF Pro Display", -apple-system, BlinkMacSystemFont,
+    system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-body:
+    "SF Pro Text", -apple-system, BlinkMacSystemFont,
+    "Inter", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:
+    "SourceCodePro", "Source Code Pro",
+    ui-monospace, "SF Mono", "JetBrains Mono",
+    Menlo, Monaco, Consolas, monospace;
+
+  /* ─── Typography — scale (Stripe 12/14/16/18/22/32/48/56) ─────────── */
+  --text-xs:   12px;
+  --text-sm:   14px;
+  --text-base: 16px;
+  --text-lg:   18px;
+  --text-xl:   22px;
+  --text-2xl:  32px;
+  --text-3xl:  48px;
+  --text-4xl:  56px;
+
+  /* ─── Typography — leading & tracking ──────────────────────────────── */
+  --leading-body:     1.45;
+  --leading-tight:    1.10;
+  --tracking-display: -0.02em;
+
+  /* ─── Spacing (4px base) ───────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-12: 48px;
+
+  /* ─── Radius (Stripe 4/6/8 — never pill on interactive surfaces) ──── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-pill: 9999px;
+
+  /* ─── Elevation (chromatic depth on dark surfaces) ─────────────────── */
+  --elev-flat:  none;
+  --elev-ring:  0 0 0 1px var(--border);
+  --elev-raised:
+    0 4px 12px  rgba(0, 0, 0, 0.4),
+    0 1px 3px   rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  /* ─── Focus ring ───────────────────────────────────────────────────── */
+  --focus-ring:
+    0 0 0 2px var(--accent),
+    0 0 0 5px color-mix(in oklab, var(--accent), transparent 75%);
+
+  /* ─── Motion ───────────────────────────────────────────────────────── */
+  --motion-fast:   150ms;
+  --motion-base:   200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ─── Layout ───────────────────────────────────────────────────────── */
+  --container-max: 1200px;
+}

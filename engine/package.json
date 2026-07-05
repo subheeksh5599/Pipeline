@@ -2,19 +2,19 @@
   "name": "pipeline-engine",
   "version": "0.1.0",
   "private": true,
-  "description": "Pipeline's offchain spending approval engine for AI agents on Arc",
+  "description": "Pipeline offchain spending approval engine for AI agents on Arc",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "vitest run",
-    "lint": "eslint src/"
+    "test:watch": "vitest",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "express": "^4.21.0",
-    "ethers": "^6.13.0",
-    "node-fetch": "^3.3.2"
+    "ethers": "^6.13.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
