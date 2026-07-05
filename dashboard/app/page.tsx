@@ -1,164 +1,144 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getBudget, getStats, getHealth, type BudgetStatus, type DashboardStats, type HealthResponse } from "@/lib/api";
 
-const WATCHED_AGENTS = (process.env.NEXT_PUBLIC_WATCHED_AGENTS ?? "").split(",").filter(Boolean);
-
-function formatUSDC(wei: string): string {
-  const n = Number(wei) / 1_000_000;
-  if (n >= 1000) return `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  if (n >= 0.01) return `$${n.toFixed(2)}`;
-  return `$${n.toFixed(6)}`;
-}
-
-function truncate(addr: string): string {
-  if (addr.length <= 12) return addr;
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
-export default function OverviewPage() {
-  const [budgets, setBudgets] = useState<{ agent: string; budget: BudgetStatus }[]>([]);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const [budgetResults, statsResult, healthResult] = await Promise.all([
-          WATCHED_AGENTS.length > 0
-            ? Promise.all(
-                WATCHED_AGENTS.map(async (agent) => {
-                  try {
-                    const b = await getBudget(agent);
-                    return { agent, budget: b };
-                  } catch {
-                    return null;
-                  }
-                })
-              ).then((res) => res.filter((r): r is NonNullable<typeof r> => r !== null))
-            : Promise.resolve([]),
-          getStats().catch(() => null),
-          getHealth().catch(() => null),
-        ]);
-        setBudgets(budgetResults);
-        setStats(statsResult);
-        setHealth(healthResult);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "failed to fetch");
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="page">
-        <div className="loading"><div className="spinner" /> connecting to engine</div>
-      </div>
-    );
-  }
-
+export default function LandingPage() {
   return (
-    <div className="page">
-      <header className="header">
-        <div>
-          <h1>Pipeline</h1>
-          <p className="sub">programmable spending for AI agents</p>
+    <div className="landing">
+      {/* ── hero ──────────────────────────────────────────────────────── */}
+      <section className="hero">
+        <span className="hero-tag">Lepton Agents Hackathon · Canteen × Circle × Arc</span>
+        <h1>
+          Pipeline
+          <span className="hero-sub">the programmable spending engine for AI agents</span>
+        </h1>
+        <p className="hero-lede">
+          Give an agent a wallet and it will drain you. Pipeline sits between every Circle
+          wallet and every x402 endpoint, governing every cent an agent spends — budgets,
+          rate limits, endpoint ACLs, and outcome-gated tranches — enforced onchain on Arc
+          with sub-second finality and gasless settlement through Gateway.
+        </p>
+        <div className="hero-actions">
+          <Link href="/dashboard" className="btn btn-primary">Open Dashboard</Link>
+          <a href="https://github.com/subheeksh5599/Pipeline" className="btn">GitHub</a>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)" }}>
-          {health && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: "var(--text-xs)", color: "var(--muted)" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--success)", display: "inline-block" }} />
-              engine ok · {health.queueDepth} in queue
-            </span>
-          )}
-          <Link href="/policies" className="btn">Policies</Link>
-          <Link href="/audit" className="btn">Audit Log</Link>
-        </div>
-      </header>
+      </section>
 
-      <div className="stats-row">
-        <div className="stat-card">
-          <p className="label">Total Budgets</p>
-          <p className="value">{stats ? stats.budgetCount : budgets.length}</p>
+      {/* ── problem ────────────────────────────────────────────────────── */}
+      <section className="block">
+        <h2>The gap no one filled</h2>
+        <div className="grid-2">
+          <div className="card">
+            <p className="card-label">Circle gives agents wallets</p>
+            <p className="card-body">The Agent Stack embeds USDC spending into any AI agent. It can pay, receive, stream, and settle on Arc in under half a second.</p>
+          </div>
+          <div className="card">
+            <p className="card-label">x402 gives them things to buy</p>
+            <p className="card-body">The HTTP 402 Payment Required standard wraps any API, article, or stream in a paywall. Agents discover and pay per request.</p>
+          </div>
+          <div className="card accent-card">
+            <p className="card-label">Pipeline governs the spend between them</p>
+            <p className="card-body">No one built the control plane. An agent with unrestricted spending authority is not autonomous — it is ungoverned. Pipeline adds budgets, rate limits, endpoint blocklists, and outcome-gated tranches. Every approval and denial is audited onchain.</p>
+          </div>
         </div>
-        <div className="stat-card">
-          <p className="label">Approved (24h)</p>
-          <p className="value">{stats ? formatUSDC(stats.totalApproved) : "—"}</p>
-        </div>
-        <div className="stat-card">
-          <p className="label">Denied (24h)</p>
-          <p className="value">{stats ? formatUSDC(stats.totalDenied) : "—"}</p>
-        </div>
-        <div className="stat-card">
-          <p className="label">Approval Rate</p>
-          <p className="value">{stats ? `${(stats.approvalRate * 100).toFixed(1)}%` : "—"}</p>
-        </div>
-        <div className="stat-card">
-          <p className="label">Avg Settlement</p>
-          <p className="value">{stats ? `${stats.avgSettlementMs}ms` : "—"}</p>
-        </div>
-      </div>
+      </section>
 
-      {error && (
-        <div className="section-block">
-          <div className="table-wrap">
-            <div className="empty-state">
-              <p>{error}</p>
-              <p style={{ fontSize: 11 }}>set NEXT_PUBLIC_WATCHED_AGENTS env var to track agent budgets</p>
+      {/* ── how it works ────────────────────────────────────────────────── */}
+      <section className="block">
+        <h2>How it works</h2>
+        <div className="flow">
+          <div className="flow-row">
+            <span className="flow-step">1</span>
+            <div>
+              <strong>Agent hits an x402 endpoint</strong>
+              <p>An AI agent attempts to pay for an API call, article, or stream. Before USDC moves, the request hits Pipeline.</p>
+            </div>
+          </div>
+          <div className="flow-arrow">
+            <svg width="2" height="32" viewBox="0 0 2 32"><line x1="1" y1="0" x2="1" y2="32" stroke="var(--border)" strokeWidth="2" strokeDasharray="2 4"/></svg>
+          </div>
+          <div className="flow-row">
+            <span className="flow-step">2</span>
+            <div>
+              <strong>Pipeline runs policy checks in under 100ms</strong>
+              <p>Budget allocation &rarr; endpoint allowlist &rarr; per-request cap &rarr; hourly rate limit &rarr; outcome gate. Every rule lives onchain in <code>PipelinePolicy.sol</code>.</p>
+            </div>
+          </div>
+          <div className="flow-arrow">
+            <svg width="2" height="32" viewBox="0 0 2 32"><line x1="1" y1="0" x2="1" y2="32" stroke="var(--border)" strokeWidth="2" strokeDasharray="2 4"/></svg>
+          </div>
+          <div className="flow-row">
+            <span className="flow-step split">3a</span>
+            <div>
+              <strong>Approved</strong>
+              <p>USDC settles on Arc in under 500ms via Gateway gasless batching. The audit log records the approval with a tx hash.</p>
+            </div>
+          </div>
+          <div className="flow-row">
+            <span className="flow-step split deny">3b</span>
+            <div>
+              <strong>Denied</strong>
+              <p>The rejection is logged with a reason code — &ldquo;budget exceeded,&rdquo; &ldquo;endpoint blocked,&rdquo; &ldquo;rate limited.&rdquo; The operator gets a dashboard alert.</p>
             </div>
           </div>
         </div>
-      )}
+      </section>
 
-      {budgets.length > 0 && (
-        <section className="section-block">
-          <div className="section-header">
-            <h2 className="section-title">Agent Budgets</h2>
-            <span style={{ fontSize: "var(--text-xs)", color: "var(--muted)" }}>{budgets.length} agent{budgets.length !== 1 ? "s" : ""}</span>
+      {/* ── stack ──────────────────────────────────────────────────────── */}
+      <section className="block">
+        <h2>Circle primitives in use</h2>
+        <div className="grid-3">
+          <div className="card">
+            <p className="card-label">Wallets</p>
+            <p className="card-body">Every agent gets a Circle wallet. Pipeline governs what that wallet can spend, where, and how fast.</p>
           </div>
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Agent</th>
-                  <th>Budget ID</th>
-                  <th>Allocated</th>
-                  <th>Spent</th>
-                  <th>Remaining</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {budgets.map(({ agent, budget }) => (
-                  <tr key={agent}>
-                    <td className="mono" title={agent}>{truncate(agent)}</td>
-                    <td className="mono">{budget.budgetId}</td>
-                    <td>{formatUSDC(budget.allocated)}</td>
-                    <td>{formatUSDC(budget.spent)}</td>
-                    <td>{formatUSDC(budget.remaining)}</td>
-                    <td>
-                      <span className={`badge ${budget.active ? (Number(budget.remaining) === 0 ? "badge-exhausted" : "badge-active") : "badge-blocked"}`}>
-                        {!budget.active ? "disabled" : Number(budget.remaining) === 0 ? "exhausted" : "active"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="card">
+            <p className="card-label">x402 Protocol</p>
+            <p className="card-body">The pre-flight hook intercepts x402 payment requests before they route through — approve or deny in under 100ms.</p>
           </div>
-        </section>
-      )}
+          <div className="card">
+            <p className="card-label">Gateway</p>
+            <p className="card-body">Nanopayments as small as $0.000001, gas-free via batched transactions. Pipeline aggregates approvals into single Gateway batches.</p>
+          </div>
+          <div className="card">
+            <p className="card-label">Contracts</p>
+            <p className="card-body">PipelinePolicy.sol stores budgets, endpoint rules, and outcome bonds onchain on Arc — a verifiable audit trail.</p>
+          </div>
+          <div className="card">
+            <p className="card-label">App Kit</p>
+            <p className="card-body">Unified Balance for cross-category spend tracking. Cross-chain routing through Bridge + Swap composition.</p>
+          </div>
+          <div className="card">
+            <p className="card-label">Arc</p>
+            <p className="card-body">Sub-500ms settlement. Native USDC gas. The only L1 where sub-cent agent payments are economical.</p>
+          </div>
+        </div>
+      </section>
 
-      <footer className="footer">
-        <span>Pipeline · Lepton Agents Hackathon · Canteen × Circle × Arc</span>
-        <span>Arc testnet</span>
+      {/* ── moat ────────────────────────────────────────────────────────── */}
+      <section className="block">
+        <h2>Why this is a monopoly play</h2>
+        <div className="grid-2">
+          <div className="card">
+            <p className="card-label">Switch cost</p>
+            <p className="card-body">An agent&rsquo;s spending policy lives in the PipelinePolicy contract. Moving it means rewriting the entire budget logic from scratch. Policies compound — the more rules an agent accumulates, the stickier Pipeline gets.</p>
+          </div>
+          <div className="card">
+            <p className="card-label">Network position</p>
+            <p className="card-body">Pipeline sits between every Circle wallet and every x402 endpoint. All agent spend routes through it. Once other contracts integrate against Pipeline&rsquo;s approval API, it becomes infrastructure.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── footer ──────────────────────────────────────────────────────── */}
+      <footer className="site-footer">
+        <div>
+          <p className="footer-name">Pipeline</p>
+          <p>Lepton Agents Hackathon · Canteen &times; Circle &times; Arc · 2026</p>
+        </div>
+        <div className="footer-links">
+          <a href="https://github.com/subheeksh5599/Pipeline">GitHub</a>
+          <Link href="/policies">Policies</Link>
+          <Link href="/audit">Audit Log</Link>
+        </div>
       </footer>
     </div>
   );
