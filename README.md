@@ -46,19 +46,35 @@ pipeline/
 │   │   └── PipelinePolicy.t.sol      # Foundry test suite
 │   └── foundry.toml
 ├── engine/                           # Offchain approval engine (TypeScript)
-│   └── src/
-│       ├── server.ts                 # Express server, x402 pre-flight interceptor
-│       ├── policy-resolver.ts        # Onchain rule evaluation + cache
-│       ├── rate-limiter.ts           # Token bucket per agent per category
-│       ├── batch-queue.ts            # Gateway gasless batch aggregator
+│   ├── src/
+│   │   ├── server.ts                 # Self-contained engine — x402 preflight,
+│   │   │                             #   budget read, policies, audit, stats, health
+│   │   ├── README.md                 # Supplementary module docs — canonical
+│   │   │                             #   design reference (not imported by server.ts)
+│   │   ├── policy-resolver.ts        # Onchain rule evaluation + cache
+│   │   ├── rate-limiter.ts           # Token bucket per agent per category
+│   │   ├── batch-queue.ts            # Gateway gasless batch aggregator
+│   │   └── outcome-gater.ts          # Outcome-gated tranche release
+│   └── test/
+│       ├── server.test.ts            # Integration tests (7 cases)
+│       ├── rate-limiter.test.ts      # Rate limiter unit tests
+│       └── batch-queue.test.ts       # Batch queue unit tests
 ├── dashboard/                        # Next.js operator dashboard
-│   └── app/
-│       ├── page.tsx                  # Budget overview + real-time activity
-│       ├── policies/page.tsx         # Endpoint rule builder
-│       └── audit/page.tsx            # Full spend log
+│   ├── app/
+│   │   ├── tokens.css                # Dark Stripe design tokens (open-design)
+│   │   ├── globals.css               # Token-driven stylesheet
+│   │   ├── layout.tsx                # Root layout
+│   │   ├── page.tsx                  # Live budget overview (API-driven)
+│   │   ├── policies/page.tsx         # Live endpoint rules (API-driven)
+│   │   └── audit/page.tsx            # Live spend audit log (API-driven)
+│   └── lib/
+│       └── api.ts                    # Typed engine API client
 ├── scripts/
-│   ├── deploy.sh                     # Foundry deploy to Arc testnet
-│   └── bootstrap-policy.ts           # Seed budgets + endpoint rules
+│   ├── deploy.sh                     # Foundry deploy → saves address to .env.pipeline
+│   ├── bootstrap-policy.ts           # Seed budgets + endpoint rules onchain
+│   └── verify.sh                     # Full test suite + env validation
+├── .env.example                      # Template env for all services
+├── docker-compose.yml                # Engine + dashboard deployment
 └── README.md
 ```
 
@@ -147,9 +163,30 @@ A Next.js operator dashboard for humans managing agent budgets.
 - Circle CLI installed
 - Testnet USDC (use TestMint: up to $10k in test USDC via x402)
 
+## Engine API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/x402/preflight` | Intercept agent spend before x402 — approve or deny |
+| `GET` | `/budget/:agent` | Budget status for an agent address |
+| `GET` | `/policies` | All configured endpoint rules (event-sourced from contract) |
+| `GET` | `/audit?limit=50` | Spend audit log — every approval and denial |
+| `GET` | `/stats` | Aggregated 24h stats (approval rate, volume, settlement times) |
+| `GET` | `/health` | Engine health, uptime, contract configuration status |
+
+The engine starts regardless of whether a contract is configured — endpoints return `503` with a clear error until `POLICY_ADDRESS` is set.
+
 ## Quick start
 
-### 1. Install tooling
+### 1. Verify your environment
+
+```bash
+./scripts/verify.sh
+```
+
+This checks Foundry + Node versions, env vars, runs contract tests via `forge test`, runs engine tests via `vitest`, and typechecks. Fix any red before continuing.
+
+### 2. Install tooling
 
 ```bash
 # ARC CLI — gives RPC access + agent context
@@ -163,23 +200,18 @@ curl -L https://foundry.paradigm.xyz | bash
 foundryup
 ```
 
-### 2. Clone and install
+### 3. Clone and install
 
 ```bash
-git clone https://github.com/your-org/pipeline.git
+git clone https://github.com/subheeksh5599/Pipeline.git
 cd pipeline
 
-# Install engine dependencies
+# install everything
 cd engine && npm install && cd ..
-
-# Install dashboard dependencies
 cd dashboard && npm install && cd ..
-
-# Install Foundry dependencies
-cd contracts && forge install && cd ..
 ```
 
-### 3. Deploy the contract
+### 4. Deploy the contract
 
 ```bash
 export ARC_RPC_URL="<your-arc-testnet-rpc>"
@@ -188,30 +220,47 @@ export PRIVATE_KEY="<your-deployer-key>"
 ./scripts/deploy.sh
 ```
 
-Save the deployed contract address.
+The deploy script runs `forge test` first, deploys the contract, and saves the address to `.env.pipeline`. It also prints the address clearly at the end.
 
-### 4. Bootstrap a policy
+### 5. Configure the engine
+
+Copy the deployed address printed by the deploy script:
 
 ```bash
+# from .env.pipeline (auto-generated by deploy.sh)
 export POLICY_ADDRESS="0x..."
-export PRIVATE_KEY="<your-deployer-key>"
+export ARC_RPC_URL="<your-arc-testnet-rpc>"
+```
 
+Or create `engine/.env`:
+```
+POLICY_ADDRESS=0x...
+ARC_RPC_URL=http://localhost:8545
+```
+
+### 6. Seed a budget + endpoint rules
+
+```bash
 npx tsx scripts/bootstrap-policy.ts
 ```
 
-### 5. Start the engine
+### 7. Start the engine
 
 ```bash
-cd engine
-ARC_RPC_URL="<arc-rpc>" POLICY_ADDRESS="<deployed-address>" npm run dev
+cd engine && npm run dev
+# [pipeline] engine on :3100  arc=...  policy=0x...
 ```
 
-### 6. Start the dashboard
+### 8. Start the dashboard
 
 ```bash
 cd dashboard
+cp .env.example .env.local
+# edit .env.local: set NEXT_PUBLIC_ENGINE_URL and NEXT_PUBLIC_WATCHED_AGENTS
 npm run dev
 ```
+
+Open http://localhost:3101. The dashboard fetches live data from the engine — no hardcoded rows.
 
 ## Three-week build plan
 
