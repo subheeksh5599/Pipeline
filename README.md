@@ -262,35 +262,45 @@ npm run dev
 
 Open http://localhost:3101. The dashboard fetches live data from the engine — no hardcoded rows.
 
-## Three-week build plan
+## Demo video
 
-### Week 1 — Contract + Engine Core
+Recorded with Loom, YouTube, or Vimeo. Under 3 minutes per hackathon rules.
 
-- [ ] Implement `PipelinePolicy.sol` — budgets, endpoint ACLs, outcome bonds
-- [ ] Write Foundry tests — full coverage of all contract paths
-- [ ] Deploy to Arc testnet
-- [ ] Build engine server — Express, x402 pre-flight endpoint
-- [ ] Wire PolicyResolver to read from onchain state
-- [ ] Implement RateLimiter (token bucket per agent per category)
-- [ ] Test: agent sends spend → engine intercepts → contract approves or denies
+### What to record (2:45 total)
 
-### Week 2 — Gateway + Dashboard
+| Timestamp | Segment | What to show |
+|-----------|---------|-------------|
+| 0:00–0:20 | **Landing page** | Open https://dashboard-six-fawn-62.vercel.app — the clean minimal landing page. Mention what Pipeline does in one sentence. |
+| 0:20–0:50 | **Contract** | Open `contracts/src/PipelinePolicy.sol`. Walk through `checkAndApprove` — the budget check, endpoint ACL, and per-request cap logic. Show `createBudget` and `setEndpointRule`. |
+| 0:50–1:20 | **Engine** | Open `engine/src/server.ts`. Show the `POST /x402/preflight` endpoint — rate limiter and policy check flow. Show `GET /audit` returning real timestamps, tx hashes, and reason codes. |
+| 1:20–1:50 | **Dashboard** | Switch to the live dashboard. Show budget overview (if engine is running) or navigate Policies → Audit Log. Explain what each page shows. |
+| 1:50–2:15 | **Architecture** | Screen-share the README architecture diagram or draw on a whiteboard: Agent → x402 → Pipeline Engine → Policy checks → Arc contract → Gateway batch → USDC settles. Clearly show the approve/deny split. |
+| 2:15–2:45 | **What's next** | Mention Outcome Bonds (tranche release gated on prior delivery), Gateway gasless batching, and Circle CLI integration. Close with: "Pipeline — the first spending governance layer for AI agents on Arc." |
 
-- [ ] Implement BatchQueue — aggregate approved spends for Gateway gasless batching
-- [ ] Dockerize the engine (Dockerfile, health check, env config)
-- [ ] Build dashboard — budget overview, endpoint rule builder
-- [ ] Build spend audit log — every approval and denial with timestamps
-- [ ] Wire dashboard to engine API for real-time budget status
-- [ ] Test end-to-end: agent → engine → contract → Gateway → USDC settles
+### Camera: screen + face pip
 
-### Week 3 — Demo + Polish
+- Loom: record screen + camera bubble
+- OBS: window capture the landing page, pip webcam in corner
+- QuickTime: screen record + separate webcam (combine in iMovie/DaVinci)
 
-- [ ] Add outcome-gated tranche release (budget unlocks only when prior bonds resolve as delivered)
-- [ ] Build demo: agent tries to overspend → Pipeline blocks it → human adds budget → agent resumes
-- [ ] Record 3-minute demo video (Loom/YouTube)
-- [ ] Write documentation in the README
-- [ ] Deploy live link (optional but strongly encouraged)
-- [ ] Submit through the project form (can submit multiple times)
+### Audio
+
+- Loom auto-records mic. Speak clearly, one sentence per slide.
+- If using OBS, check mic levels before recording.
+- Keep it tight — no filler words, no "um". Practice once before recording.
+
+### Submission checklist
+
+- [ ] Video under 3 minutes
+- [ ] Public YouTube/Vimeo/Loom URL (not unlisted requiring permission)
+- [ ] Shows live landing page URL
+- [ ] Shows `PipelinePolicy.sol` source
+- [ ] Shows engine server code
+- [ ] Shows dashboard pages
+- [ ] Repository URL: `https://github.com/subheeksh5599/Pipeline`
+- [ ] Live URL: `https://dashboard-six-fawn-62.vercel.app`
+- [ ] Submission form: `https://forms.gle/SMqLaw2pMGDe58LFA`
+- [ ] Deadline: **July 6, 2026, 11:59 PM ET**
 
 ## Circle primitives used
 
@@ -301,25 +311,6 @@ Open http://localhost:3101. The dashboard fetches live data from the engine — 
 | **Gateway Nanopayments** | BatchQueue aggregates approved micro-spends into gasless batches, down to $0.000001 |
 | **Contracts** | `PipelinePolicy.sol` is the onchain audit trail — all rules and budgets live on Arc |
 | **App Kit** | Unified Balance for cross-category spend tracking, Swap for treasury conversion |
-
-## Required submission materials
-
-- Public GitHub repo (this repo)
-- Video demo under 3 minutes (Loom/YouTube/Vimeo)
-- Live deployed link (optional but strongly encouraged)
-- Submission form: https://forms.gle/SMqLaw2pMGDe58LFA
-- Deadline: July 6, 2026, 11:59 PM ET
-
-## Why this wins
-
-| Moat | Mechanism |
-|------|-----------|
-| **Switch cost** | An agent's spending policy lives in the PipelinePolicy contract. Moving it means rewriting the entire budget logic from scratch. |
-| **Policy depth** | The more rules an agent accumulates (don't pay this endpoint, surge during peak hours), the stickier Pipeline gets. |
-| **Network position** | Sits between every Circle wallet and every x402 endpoint. All agent spend routes through Pipeline. |
-| **Composability** | Once other contracts integrate against Pipeline's approval API, it becomes infrastructure — not a feature. |
-
-No one has built the spending governance layer yet. Every team at this hackathon is building _things you pay for_. Pipeline is the thing that decides whether you're allowed to pay.
 
 ## License
 
