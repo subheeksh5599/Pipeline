@@ -99,8 +99,14 @@ contract PipelinePolicy {
     function checkAndApprove(address _agent, address _endpoint, bytes4 _method, uint256 _amount) external returns (bool, bytes memory) {
         uint256 budgetId = agentBudgetId[_agent];
         Budget storage b = budgets[budgetId];
-        require(b.active, "no active budget");
-        require(b.allocated - b.spent >= _amount, "budget exceeded");
+        if (!b.active) {
+            emit SpendDenied(budgetId, _endpoint, _amount, bytes("no active budget"));
+            return (false, bytes("no active budget"));
+        }
+        if (b.allocated - b.spent < _amount) {
+            emit SpendDenied(budgetId, _endpoint, _amount, bytes("budget exceeded"));
+            return (false, bytes("budget exceeded"));
+        }
 
         if (block.timestamp - b.lastResetAt >= 1 hours) {
             b.lastResetAt = block.timestamp;

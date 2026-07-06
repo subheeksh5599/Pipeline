@@ -64,7 +64,8 @@ pipeline/
 │   │   ├── tokens.css                # Dark Stripe design tokens (open-design)
 │   │   ├── globals.css               # Token-driven stylesheet
 │   │   ├── layout.tsx                # Root layout
-│   │   ├── page.tsx                  # Live budget overview (API-driven)
+│   │   ├── page.tsx                  # Landing page (static, zero API calls)
+│   │   ├── dashboard/page.tsx        # Live budget overview (API-driven)
 │   │   ├── policies/page.tsx         # Live endpoint rules (API-driven)
 │   │   └── audit/page.tsx            # Live spend audit log (API-driven)
 │   └── lib/
@@ -261,46 +262,6 @@ npm run dev
 ```
 
 Open http://localhost:3101. The dashboard fetches live data from the engine — no hardcoded rows.
-
-## Demo video
-
-Recorded with Loom, YouTube, or Vimeo. Under 3 minutes per hackathon rules.
-
-### What to record (2:45 total)
-
-| Timestamp | Segment | What to show |
-|-----------|---------|-------------|
-| 0:00–0:20 | **Landing page** | Open https://dashboard-six-fawn-62.vercel.app — the clean minimal landing page. Mention what Pipeline does in one sentence. |
-| 0:20–0:50 | **Contract** | Open `contracts/src/PipelinePolicy.sol`. Walk through `checkAndApprove` — the budget check, endpoint ACL, and per-request cap logic. Show `createBudget` and `setEndpointRule`. |
-| 0:50–1:20 | **Engine** | Open `engine/src/server.ts`. Show the `POST /x402/preflight` endpoint — rate limiter and policy check flow. Show `GET /audit` returning real timestamps, tx hashes, and reason codes. |
-| 1:20–1:50 | **Dashboard** | Switch to the live dashboard. Show budget overview (if engine is running) or navigate Policies → Audit Log. Explain what each page shows. |
-| 1:50–2:15 | **Architecture** | Screen-share the README architecture diagram or draw on a whiteboard: Agent → x402 → Pipeline Engine → Policy checks → Arc contract → Gateway batch → USDC settles. Clearly show the approve/deny split. |
-| 2:15–2:45 | **What's next** | Mention Outcome Bonds (tranche release gated on prior delivery), Gateway gasless batching, and Circle CLI integration. Close with: "Pipeline — the first spending governance layer for AI agents on Arc." |
-
-### Camera: screen + face pip
-
-- Loom: record screen + camera bubble
-- OBS: window capture the landing page, pip webcam in corner
-- QuickTime: screen record + separate webcam (combine in iMovie/DaVinci)
-
-### Audio
-
-- Loom auto-records mic. Speak clearly, one sentence per slide.
-- If using OBS, check mic levels before recording.
-- Keep it tight — no filler words, no "um". Practice once before recording.
-
-### Submission checklist
-
-- [ ] Video under 3 minutes
-- [ ] Public YouTube/Vimeo/Loom URL (not unlisted requiring permission)
-- [ ] Shows live landing page URL
-- [ ] Shows `PipelinePolicy.sol` source
-- [ ] Shows engine server code
-- [ ] Shows dashboard pages
-- [ ] Repository URL: `https://github.com/subheeksh5599/Pipeline`
-- [ ] Live URL: `https://dashboard-six-fawn-62.vercel.app`
-- [ ] Submission form: `https://forms.gle/SMqLaw2pMGDe58LFA`
-- [ ] Deadline: **July 6, 2026, 11:59 PM ET**
 
 ## Circle primitives used
 
